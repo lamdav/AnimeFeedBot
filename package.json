@@ -1,0 +1,22 @@
+{
+  "name": "sandboxdiscordbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/index.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "bufferutil": "^3.0.5",
+    "discord.js": "^11.3.2",
+    "erpack": "discordapp/erlpack",
+    "libsodium-wrappers": "^0.7.3"
+  },
+  "devDependencies": {
+    "nodemon": "^1.17.5"
+  }
+}
