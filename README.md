@@ -6,7 +6,7 @@ showings.
 I wrote this bot to familiarize myself with the discord developer tools.
 
 ## External Dependencies
-- [monthly.moe](monthly.moe)
+- [monthly.moe](https://www.monthly.moe/)
 
 ## Setup
 1. Clone the repository
