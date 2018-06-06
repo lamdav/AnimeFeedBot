@@ -2,17 +2,19 @@
   "name": "sandboxdiscordbot",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "bot.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/index.js"
+    "start": "node src/bot.js | ./node_modules/.bin/bunyan -o short",
+    "dev": "nodemon src/bot.js | ./node_modules/.bin/bunyan -o short"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
     "axios": "^0.18.0",
     "bufferutil": "^3.0.5",
+    "bunyan": "^1.8.12",
     "discord.js": "^11.3.2",
+    "dotenv": "^6.0.0",
     "erpack": "discordapp/erlpack",
     "libsodium-wrappers": "^0.7.3"
   },
