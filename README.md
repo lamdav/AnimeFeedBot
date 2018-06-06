@@ -18,6 +18,7 @@ git clone https://github.com/lamdaV/AnimeFeedBot.git
 ```
 cd AnimeFeedBot
 mkdir logs
+touch logs/bot.log
 ```
 
 3. Install dependencies
