@@ -7,7 +7,7 @@
     "start": "node src/bot.js | ./node_modules/.bin/bunyan -o short",
     "dev": "nodemon src/bot.js | ./node_modules/.bin/bunyan -o short"
   },
-  "author": "",
+  "author": "David Lam",
   "license": "MIT",
   "dependencies": {
     "axios": "^0.18.0",
