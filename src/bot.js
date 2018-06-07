@@ -133,7 +133,7 @@ const setDailyUpdateInterval = (guild, channel) => {
                                                  oneDayInMilliseconds,
                                                  channel);
   log.info(`daily interval set for ${channel.name}`);
-  message.send(`daily interval has been set for ${guild.name}#${channel.name}`);
+  channel.send(`daily interval has been set for ${guild.name}#${channel.name}`);
 };
 
 const help = (channel) => {
