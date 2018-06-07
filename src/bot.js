@@ -124,6 +124,8 @@ const setDailyUpdateInterval = (guild, channel) => {
       channel.send('update has already been set for this channel');
       return;
     }
+  } else {
+    guildIntervalMap = {};
   }
 
   const oneDayInMilliseconds = 86400000;
@@ -132,6 +134,12 @@ const setDailyUpdateInterval = (guild, channel) => {
   const dailyUpdateInterval = client.setInterval(fetchTodaysAnime,
                                                  oneDayInMilliseconds,
                                                  channel);
+
+  channelIntervalMap = {};
+  channelIntervalMap[channel.id] = dailyUpdateInterval;
+  guildIntervalMap = Object.assign(guildIntervalMap, channelIntervalMap);
+  updateMap[guild.id] = guildIntervalMap;
+  
   log.info(`daily interval set for ${channel.name}`);
   channel.send(`daily interval has been set for ${guild.name}#${channel.name}`);
 };
