@@ -107,10 +107,25 @@ const praiseTheSun = (channel) => {
   channel.send('\\\\[T]/ \\\\[T]/ \\\\[T]/');
 };
 
+const updateMap = {};
 /**
  *  Update the given channel with listed showings.
  */
-const setDailyUpdateInterval = (channel) => {
+const setDailyUpdateInterval = (guild, channel) => {
+  if (!guild) {
+    channel.send('only server channels may have daily updates');
+    return;
+  }
+
+  guildIntervalMap = updateMap[guild.id];
+  if (guildIntervalMap) {
+    channelInterval = guildIntervalMap[channel.id];
+    if (channelInterval) {
+      channel.send('update has already been set for this channel');
+      return;
+    }
+  }
+
   const oneDayInMilliseconds = 86400000;
   // development 10 second interval.
   // const oneDayInMilliseconds = 10000;
@@ -118,6 +133,7 @@ const setDailyUpdateInterval = (channel) => {
                                                  oneDayInMilliseconds,
                                                  channel);
   log.info(`daily interval set for ${channel.name}`);
+  message.send(`daily interval has been set for ${guild.name}#${channel.name}`);
 };
 
 const help = (channel) => {
@@ -146,7 +162,7 @@ client.on('message', (message) => {
       praiseTheSun(message.channel);
       break;
     case '-> update':
-      setDailyUpdateInterval(message.channel);
+      setDailyUpdateInterval(message.guild, message.channel);
       break;
     case '-> help':
       help(message.channel);
