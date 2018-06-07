@@ -5,6 +5,14 @@ showings.
 ## Purpose
 I wrote this bot to familiarize myself with the discord developer tools.
 
+## Commands
+**Note:** All commands are prefixed with `->`.
+
+- `-> help` responds with a list of commands available.
+- `-> anime-today` responds with a listing of anime showings of the current date.
+- `-> update` sets the channel to be updated regularly every 24 hour interval
+- `-> praise-the-sun` responds with `\[T]/ \[T]/ \[T]/`
+
 ## External Dependencies
 - [monthly.moe](https://www.monthly.moe/)
 
