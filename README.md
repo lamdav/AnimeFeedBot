@@ -40,6 +40,18 @@ npm run start
 yarn start
 ```
 
+## Using pm2
+1. Install pm2 globally
+```
+npm install -g pm2
+```
+
+2. Start bot with pm2
+```
+cd AnimeFeedBot
+pm2 start src/bot.js --name AnimeFeedBot
+```
+
 ## Development
 Run through the [Setup](#setup) once. Run
 ```

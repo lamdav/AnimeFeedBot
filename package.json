@@ -15,7 +15,7 @@
     "bunyan": "^1.8.12",
     "discord.js": "^11.3.2",
     "dotenv": "^6.0.0",
-    "erpack": "discordapp/erlpack",
+    "erlpack": "hammerandchisel/erlpack",
     "libsodium-wrappers": "^0.7.3"
   },
   "devDependencies": {
