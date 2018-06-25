@@ -51,9 +51,8 @@ const compareDates = (date1, date2) => {
  *  Merge the episode with the show's title into one object.
  */
 const mergeAnimeMetaWithEpisode = (animes, episode) => {
-  const id = episode.anime_id;
-  const title = animes[id]
-  return Object.assign(episode, {show: title});
+  const data = animes[episode.anime_id];
+  return Object.assign(episode, {title: title});
 };
 
 /**
@@ -85,16 +84,58 @@ const fetchTodaysAnime = (channel) => {
           idToTitle[anime.id] = anime.main_title;
         });
 
-        const showsToday = episodes.filter((episode) => filterEpisode(currentDate, episode))
-          .map((episode) => mergeAnimeMetaWithEpisode(idToTitle, episode))
-          .map((episode) => episode.show);
-        let responseMessage = 'Current Season Anime Airing Today:\n';
-        showsToday.forEach((show) => {
-          responseMessage += `- ${show}\n`;
-        });
-        channel.send(responseMessage);
+        const episodeReducer = (episodeMap, episode) => {
+          const animeId = episode.anime_id;
+          const episodeData = episodeMap[animeId];
+          if (episodeData) {
+            const updatedDatum = Object.assign(episodeData,
+               {episodes: episodeData.episodes.concat([episode])});
+            return Object.assign(episodeMap, updatedDatum);
+          } else {
+            const datum = {};
+            datum[animeId] = {title: idToTitle[animeId], episodes: [episode]};
+            return Object.assign(episodeMap, datum);
+          }
+        };
+        const idToMeta = episodes.filter((episode) => filterEpisode(currentDate, episode))
+          .reduce(episodeReducer, {});
+        log.info(idToMeta);
+
+        const sortByTitle = (meta1, meta2) => {
+          if (meta1.title < meta2.title) {
+            return -1
+          } else if (meta1.title === meta2.title) {
+            return 0;
+          } else {
+            return 1;
+          }
+        };
+        const constructEpisodeMessage = (message, episode) => {
+          return message.concat(`- Ep ${episode.number} @ ${new Date(episode.datetime).toTimeString()}\n`);
+        };
+        const constructDiscordEmbeddableFields = (meta) => {
+          return {
+            name: meta.title,
+            value: meta.episodes.reduce(constructEpisodeMessage, '')
+          };
+        };
+        const embeddedFields = Object.values(idToMeta)
+          .sort(sortByTitle)
+          .map(constructDiscordEmbeddableFields);
+
+        const randomColor = Math.floor(Math.random() * 1000000);
+        const embeddedMessage = {
+          embed: {
+            title: `Anime for ${currentDate.toDateString()}`,
+            color: randomColor,
+            fields: embeddedFields
+          }
+        };
+        channel.send('', embeddedMessage)
+          .catch((error) => log.error(error));
       } else {
         log.error(response.data);
+        channel.send(`There was an issue fetching anime data: ${response.status} -- ${response.data}`);
       }
     })
     .catch((error) => { log.error(error) });
@@ -139,7 +180,7 @@ const setDailyUpdateInterval = (guild, channel) => {
   channelIntervalMap[channel.id] = dailyUpdateInterval;
   guildIntervalMap = Object.assign(guildIntervalMap, channelIntervalMap);
   updateMap[guild.id] = guildIntervalMap;
-  
+
   log.info(`daily interval set for ${channel.name}`);
   channel.send(`daily interval has been set for ${guild.name}#${channel.name}`);
 };
