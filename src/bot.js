@@ -56,9 +56,7 @@ const fetchTodaysAnime = (channel, args) => {
   let currentDate;
   if (args && args.length >= 1) {
     if (!moment.tz.zone(args[TIMEZONE_INDEX])) {
-      channel.send(`Invalid timezone ${args[TIMEZONE_INDEX]}\n
-        Please provide the appropriate \`TZ\` found
-        here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones`);
+      channel.send(`Invalid timezone ${args[TIMEZONE_INDEX]}\nPlease provide the appropriate \`TZ\` found here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones`);
       return;
     }
     currentDate = moment().tz(args[TIMEZONE_INDEX]);
@@ -201,18 +199,6 @@ const setDailyUpdateInterval = (guild, channel, args) => {
   } else {
     channel.send(`missing 1 required argument: interval`);
   }
-  // const oneDayInMilliseconds = 86400000;
-  // development 10 second interval.
-  // const oneDayInMilliseconds = 10000;
-  //
-  //
-  // channelIntervalMap = {};
-  // channelIntervalMap[channel.id] = dailyUpdateInterval;
-  // guildIntervalMap = Object.assign(guildIntervalMap, channelIntervalMap);
-  // updateMap[guild.id] = guildIntervalMap;
-  //
-  // log.info(`daily interval set for ${channel.name}`);
-  // channel.send(`daily interval has been set for ${guild.name}#${channel.name}`);
 };
 
 /**
@@ -227,19 +213,15 @@ const help = (channel) => {
       fields: [
         {
           name: '`-> anime-today [TZ]`',
-          value: `You may specify a timezone to adjust all showtimes. The timezones
-          can be found here:
-          https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.
-          If none is provided, the default is America/Los_Angeles.
-          Example: \`-> anime-today America/Los_Angeles\`.\n`
+          value: `You may specify a timezone to adjust all showtimes. The timezones can be found here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones. If none is provided, the default is America/Los_Angeles. Example: \`-> anime-today America/Los_Angeles\`.`
         },
         {
           name: '`-> praise-the-sun`',
-          value: 'Responds with the praise the sun emoji'
+          value: 'Responds with the praise the sun emoji.'
         },
         {
-          name: '`-> update`',
-          value: 'Sets the current channel to receive daily updates.'
+          name: '`-> update <interval> [TZ]`',
+          value: `Sets the current channel to receive daily updates. Interval is a required field in milliseconds (ms) used to specify the frequency of the updates. Timezone is the same optional parameter used in \`-> anime-today [TZ]\`.`,
         }
       ]
     }
