@@ -49,6 +49,13 @@ const mergeAnimeMetaWithEpisode = (animes, episode) => {
 };
 
 /**
+ *  Get a random large integer for as color.
+ */
+const generateRandomColor = () => {
+  return Math.floor(Math.random() * 1000000);
+}
+
+/**
  *  Fetch Anime for the current date.
  */
 const fetchTodaysAnime = (channel, args) => {
@@ -133,11 +140,10 @@ const fetchTodaysAnime = (channel, args) => {
           .sort(sortByTitle)
           .map(constructDiscordEmbeddableFields);
 
-        const randomColor = Math.floor(Math.random() * 1000000);
         const embeddedMessage = {
           embed: {
             title: `Anime for ${currentDate.format('MMMM Do YYYY (zz)')}`,
-            color: randomColor,
+            color: generateRandomColor(),
             fields: embeddedFields
           }
         };
@@ -195,13 +201,37 @@ const setDailyUpdateInterval = (guild, channel) => {
   channel.send(`daily interval has been set for ${guild.name}#${channel.name}`);
 };
 
+/**
+ *  Respond with a help message with a list of commands available.
+ */
 const help = (channel) => {
-  channel.send(`
-  Here are a list of commands you can execute:\n\n
-  * '-> anime-today' to get the current anime showing today\n
-  * '-> praise-the-sun' to get the praise the sun emoji\n
-  * '-> update' to set the current channel to receive daily updates\n
-  `);
+  const embeddedMessage = {
+    embed: {
+      title: 'Commands',
+      color: generateRandomColor(),
+      description: 'Here are a list of commands available',
+      fields: [
+        {
+          name: '`-> anime-today [TZ]`',
+          value: `You may specify a timezone to adjust all showtimes. The timezones
+          can be found here:
+          https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.
+          If none is provided, the default is America/Los_Angeles.
+          Example: \`-> anime-today America/Los_Angeles\`.\n`
+        },
+        {
+          name: '`-> praise-the-sun`',
+          value: 'Responds with the praise the sun emoji'
+        },
+        {
+          name: '`-> update`',
+          value: 'Sets the current channel to receive daily updates.'
+        }
+      ]
+    }
+  };
+
+  channel.send('', embeddedMessage);
 }
 
 /**
