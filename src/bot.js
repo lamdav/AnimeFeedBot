@@ -41,14 +41,6 @@ const filterEpisode = (currentDate, episode) => {
 };
 
 /**
- *  Merge the episode with the show's title into one object.
- */
-const mergeAnimeMetaWithEpisode = (animes, episode) => {
-  const data = animes[episode.anime_id];
-  return Object.assign(episode, {title: title});
-};
-
-/**
  *  Get a random large integer for as color.
  */
 const generateRandomColor = () => {
@@ -62,7 +54,7 @@ const fetchTodaysAnime = (channel, args) => {
   const TIMEZONE_INDEX = 0;
 
   let currentDate;
-  if (args) {
+  if (args && args.length >= 1) {
     if (!moment.tz.zone(args[TIMEZONE_INDEX])) {
       channel.send(`Invalid timezone ${args[TIMEZONE_INDEX]}\n
         Please provide the appropriate \`TZ\` found
@@ -168,7 +160,9 @@ const updateMap = {};
 /**
  *  Update the given channel with listed showings.
  */
-const setDailyUpdateInterval = (guild, channel) => {
+const setDailyUpdateInterval = (guild, channel, args) => {
+  const INTERVAL_INDEX = 0;
+
   if (!guild) {
     channel.send('only server channels may have daily updates');
     return;
@@ -185,20 +179,40 @@ const setDailyUpdateInterval = (guild, channel) => {
     guildIntervalMap = {};
   }
 
-  const oneDayInMilliseconds = 86400000;
+  if (args && args.length >= 1) {
+    const delay = args[INTERVAL_INDEX];
+    if (isNaN(delay)) {
+      channel.send(`interval ${delay} is not a number`);
+      return;
+    }
+    args = args.slice(1);
+
+    const dailyUpdateInterval = client.setInterval(fetchTodaysAnime,
+                                                   delay,
+                                                   channel,
+                                                   args);
+    channelIntervalMap = {};
+    channelIntervalMap[channel.id] = dailyUpdateInterval;
+    guildIntervalMap = Object.assign(guildIntervalMap, channelIntervalMap);
+    updateMap[guild.id] = guildIntervalMap;
+
+    log.info(`daily interval set for ${channel.name}`);
+    channel.send(`daily interval has been set for ${guild.name}#${channel.name}`);
+  } else {
+    channel.send(`missing 1 required argument: interval`);
+  }
+  // const oneDayInMilliseconds = 86400000;
   // development 10 second interval.
   // const oneDayInMilliseconds = 10000;
-  const dailyUpdateInterval = client.setInterval(fetchTodaysAnime,
-                                                 oneDayInMilliseconds,
-                                                 channel);
-
-  channelIntervalMap = {};
-  channelIntervalMap[channel.id] = dailyUpdateInterval;
-  guildIntervalMap = Object.assign(guildIntervalMap, channelIntervalMap);
-  updateMap[guild.id] = guildIntervalMap;
-
-  log.info(`daily interval set for ${channel.name}`);
-  channel.send(`daily interval has been set for ${guild.name}#${channel.name}`);
+  //
+  //
+  // channelIntervalMap = {};
+  // channelIntervalMap[channel.id] = dailyUpdateInterval;
+  // guildIntervalMap = Object.assign(guildIntervalMap, channelIntervalMap);
+  // updateMap[guild.id] = guildIntervalMap;
+  //
+  // log.info(`daily interval set for ${channel.name}`);
+  // channel.send(`daily interval has been set for ${guild.name}#${channel.name}`);
 };
 
 /**
@@ -248,10 +262,12 @@ client.on('message', (message) => {
     const args = content.split(' ')
       .slice(2);
     fetchTodaysAnime(message.channel, args);
-  } else if (content.startsWith('-> praise-the-sun')) {
+  } else if (content === '-> praise-the-sun') {
     praiseTheSun(message.channel);
   } else if (content.startsWith('-> update')) {
-    setDailyUpdateInterval(message.guild, message.channel);
+    const args = content.split(' ')
+      .slice(2);
+    setDailyUpdateInterval(message.guild, message.channel, args);
   } else if (content === '-> help') {
     help(message.channel);
   }
