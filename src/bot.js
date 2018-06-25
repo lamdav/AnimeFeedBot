@@ -3,6 +3,8 @@ const axios = require('axios');
 const Discord = require('discord.js');
 const bunyan = require('bunyan');
 const path = require('path');
+const moment = require('moment-timezone');
+moment.tz.setDefault('America/Los_Angeles');
 
 const client = new Discord.Client();
 const token = process.env.DISCORD_TOKEN;
@@ -34,17 +36,8 @@ client.on('ready', () => {
  *  Return true if the episode is airing on the currentDate.
  */
 const filterEpisode = (currentDate, episode) => {
-  const airDate = new Date(episode.datetime);
-  return compareDates(currentDate, airDate);
-};
-
-/**
- *  Return true if the dates year, month, and day are the same.
- */
-const compareDates = (date1, date2) => {
-  return date1.getUTCFullYear() === date2.getUTCFullYear()
-    && date1.getUTCMonth() === date2.getUTCMonth()
-    && date1.getUTCDate() === date2.getUTCDate();
+  const airDate = moment(episode.datetime).tz(currentDate.tz());
+  return currentDate.isSame(airDate, 'day');
 };
 
 /**
@@ -58,18 +51,32 @@ const mergeAnimeMetaWithEpisode = (animes, episode) => {
 /**
  *  Fetch Anime for the current date.
  */
-const fetchTodaysAnime = (channel) => {
-  const currentDate = new Date();
-  // zero -> one based indexing
-  let utcMonth = currentDate.getUTCMonth() + 1;
-  if (utcMonth < 10) {
-    utcMonth = `0${utcMonth}`;
+const fetchTodaysAnime = (channel, args) => {
+  const TIMEZONE_INDEX = 0;
+
+  let currentDate;
+  if (args) {
+    if (!moment.tz.zone(args[TIMEZONE_INDEX])) {
+      channel.send(`Invalid timezone ${args[TIMEZONE_INDEX]}\n
+        Please provide the appropriate \`TZ\` found
+        here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones`);
+      return;
+    }
+    currentDate = moment().tz(args[TIMEZONE_INDEX]);
+  } else {
+    currentDate = moment();
   }
-  const utcYear = currentDate.getUTCFullYear();
+
+  // zero -> one based indexing
+  let month = currentDate.month() + 1;
+  if (month < 10) {
+    month = `0${month}`;
+  }
+  const year = currentDate.year();
 
   const params = {
     params: {
-      date: `${utcMonth}-${utcYear}`
+      date: `${month}-${year}`
     }
   }
   axios.get('https://www.monthly.moe/api/v1/calendar', params)
@@ -111,7 +118,10 @@ const fetchTodaysAnime = (channel) => {
           }
         };
         const constructEpisodeMessage = (message, episode) => {
-          return message.concat(`- Ep ${episode.number} @ ${new Date(episode.datetime).toTimeString()}\n`);
+          const showtime = moment(episode.datetime)
+            .tz(currentDate.tz())
+            .format('HH:mm');
+          return message.concat(`- Ep ${episode.number} @ ${showtime}\n`);
         };
         const constructDiscordEmbeddableFields = (meta) => {
           return {
@@ -126,7 +136,7 @@ const fetchTodaysAnime = (channel) => {
         const randomColor = Math.floor(Math.random() * 1000000);
         const embeddedMessage = {
           embed: {
-            title: `Anime for ${currentDate.toDateString()}`,
+            title: `Anime for ${currentDate.format('MMMM Do YYYY (zz)')}`,
             color: randomColor,
             fields: embeddedFields
           }
@@ -203,20 +213,17 @@ client.on('message', (message) => {
     return;
   }
 
-  switch (message.content) {
-    case '-> anime-today':
-      fetchTodaysAnime(message.channel);
-      break;
-    case '-> praise-the-sun':
-      praiseTheSun(message.channel);
-      break;
-    case '-> update':
-      setDailyUpdateInterval(message.guild, message.channel);
-      break;
-    case '-> help':
-      help(message.channel);
-    default:
-      return;
+  const content = message.content;
+  if (content.startsWith('-> anime-today')) {
+    const args = content.split(' ')
+      .slice(2);
+    fetchTodaysAnime(message.channel, args);
+  } else if (content.startsWith('-> praise-the-sun')) {
+    praiseTheSun(message.channel);
+  } else if (content.startsWith('-> update')) {
+    setDailyUpdateInterval(message.guild, message.channel);
+  } else if (content === '-> help') {
+    help(message.channel);
   }
 });
 
