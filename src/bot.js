@@ -81,8 +81,7 @@ const fetchTodaysAnime = (channel, args) => {
         });
 
         const convertToMomentDatetime = (episode) => {
-          const convertedDatetime = moment(episode.datetime)
-            .tz(currentDate.tz());
+          const convertedDatetime = moment(episode.datetime);
           return Object.assign(episode, {datetime: convertedDatetime});
         };
         const filterEpisode = (currentDate, episode) => {
@@ -155,6 +154,7 @@ const fetchTodaysAnime = (channel, args) => {
               showtime = '???';
           } else {
             showtime = episode.datetime
+              .tz(currentDate.tz())
               .format('HH:mm');
           }
           return message.concat(`- Ep ${episode.number} @ ${showtime}\n`);
