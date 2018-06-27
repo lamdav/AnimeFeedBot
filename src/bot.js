@@ -33,14 +33,6 @@ client.on('ready', () => {
 });
 
 /**
- *  Return true if the episode is airing on the currentDate.
- */
-const filterEpisode = (currentDate, episode) => {
-  const airDate = moment(episode.datetime).tz(currentDate.tz());
-  return currentDate.isSame(airDate, 'day');
-};
-
-/**
  *  Get a random large integer for as color.
  */
 const generateRandomColor = () => {
@@ -88,36 +80,83 @@ const fetchTodaysAnime = (channel, args) => {
           idToTitle[anime.id] = anime.main_title;
         });
 
+        const convertToMomentDatetime = (episode) => {
+          const convertedDatetime = moment(episode.datetime)
+            .tz(currentDate.tz());
+          return Object.assign(episode, {datetime: convertedDatetime});
+        };
+        const filterEpisode = (currentDate, episode) => {
+          return currentDate.isSame(episode.datetime, 'day');
+        };
         const episodeReducer = (episodeMap, episode) => {
           const animeId = episode.anime_id;
           const episodeData = episodeMap[animeId];
           if (episodeData) {
             const updatedDatum = Object.assign(episodeData,
                {episodes: episodeData.episodes.concat([episode])});
-            return Object.assign(episodeMap, updatedDatum);
+            const updatedMapping = {};
+            updatedMapping[animeId] = updatedDatum;
+            return Object.assign(episodeMap, updatedMapping);
           } else {
             const datum = {};
             datum[animeId] = {title: idToTitle[animeId], episodes: [episode]};
             return Object.assign(episodeMap, datum);
           }
         };
-        const idToMeta = episodes.filter((episode) => filterEpisode(currentDate, episode))
+        const idToMeta = episodes
+          .map(convertToMomentDatetime)
+          .filter((episode) => filterEpisode(currentDate, episode))
           .reduce(episodeReducer, {});
-        log.info(idToMeta);
 
-        const sortByTitle = (meta1, meta2) => {
-          if (meta1.title < meta2.title) {
-            return -1
-          } else if (meta1.title === meta2.title) {
-            return 0;
-          } else {
-            return 1;
+        /**
+         *  Check to see if every episode under meta1 (title, episodes[])
+         *  is before every episode under meta2. If so, meta1, comes before
+         *  meta2. If there is a mix, it is resolved by their lexigraphical
+         *  ordering of their title.
+         *
+         *  Shows with episodes listed with time 0:00,
+         *  will be mutated with a new time 23:59. This is done to pull these
+         *  shows towards the bottom of the listing in which their title will
+         *  sort them.
+         */
+        const sortByAirtime = (meta1, meta2) => {
+          let time1;
+          let time2;
+          for (let i = 0; i < meta1.episodes.length; i++) {
+            time1 = meta1.episodes[i].datetime;
+            if (time1.hour() === 0 && time1.minute() === 0) {
+              time1.hour(23);
+              time1.minute(59);
+            }
+            for (let k = 0; k < meta2.episodes.length; k++) {
+              time2 = meta2.episodes[k].datetime;
+              if (time2.hour() === 0 && time2.minute() === 0) {
+                time2.hour(23);
+                time2.minute(59);
+              }
+              if (time1.isAfter(time2, 'minute')) {
+                if (i === 0) { // check the reverse.
+                  return -sortByTitle(meta2, meta1)
+                } else if (meta1.title < meta2.title) { // mix-case.
+                  return -1;
+                } else if (meta1.title === meta2.title) {
+                  return 0;
+                } else {
+                  return 1;
+                }
+              }
+            }
           }
+          return -1;
         };
         const constructEpisodeMessage = (message, episode) => {
-          const showtime = moment(episode.datetime)
-            .tz(currentDate.tz())
-            .format('HH:mm');
+          let showtime;
+          if (episode.datetime.hour() === 23 && episode.datetime.minute() === 59) {
+              showtime = '???';
+          } else {
+            showtime = episode.datetime
+              .format('HH:mm');
+          }
           return message.concat(`- Ep ${episode.number} @ ${showtime}\n`);
         };
         const constructDiscordEmbeddableFields = (meta) => {
@@ -127,6 +166,7 @@ const fetchTodaysAnime = (channel, args) => {
           };
         };
         const embeddedFields = Object.values(idToMeta)
+          .map(convertToMomentDatetime)
           .sort(sortByTitle)
           .map(constructDiscordEmbeddableFields);
 
