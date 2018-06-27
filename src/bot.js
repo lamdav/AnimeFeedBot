@@ -136,7 +136,7 @@ const fetchTodaysAnime = (channel, args) => {
               }
               if (time1.isAfter(time2, 'minute')) {
                 if (i === 0) { // check the reverse.
-                  return -sortByTitle(meta2, meta1)
+                  return -sortByAirtime(meta2, meta1)
                 } else if (meta1.title < meta2.title) { // mix-case.
                   return -1;
                 } else if (meta1.title === meta2.title) {
@@ -167,7 +167,7 @@ const fetchTodaysAnime = (channel, args) => {
         };
         const embeddedFields = Object.values(idToMeta)
           .map(convertToMomentDatetime)
-          .sort(sortByTitle)
+          .sort(sortByAirtime)
           .map(constructDiscordEmbeddableFields);
 
         const embeddedMessage = {
