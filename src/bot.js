@@ -44,6 +44,18 @@ const generateRandomColor = () => {
  */
 const fetchTodaysAnime = (channel, args) => {
   const TIMEZONE_INDEX = 0;
+  //console.log(args[1]);
+
+  const FORMAT=args[1];
+  var momentFormat;
+
+  if(FORMAT=="DMY"){
+    momentFormat="DD/MM/YYYY";
+  }else if(FORMAT=="MDY"){
+    momentFormat="MM/DD/YYYY";
+  }else if(FORMAT="YMD"){
+    momentFormat="YYYY/MM/DD";
+  }
 
   let currentDate;
   if (args && args.length >= 1) {
@@ -172,7 +184,7 @@ const fetchTodaysAnime = (channel, args) => {
 
         const embeddedMessage = {
           embed: {
-            title: `Anime for ${currentDate.format('MMMM Do YYYY (zz)')}`,
+            title: `Anime for ${currentDate.format(momentFormat)}`,
             color: generateRandomColor(),
             fields: embeddedFields
           }
