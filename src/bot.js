@@ -43,32 +43,36 @@ const generateRandomColor = () => {
  *  Fetch Anime for the current date.
  */
 const fetchTodaysAnime = (channel, args) => {
-  const TIMEZONE_INDEX = 0;
+  const TIMEZONE_PREFIX = 'TZ=';
+  const FORMAT_PREFIX = 'FMT=';
 
-  const FORMAT=args[1];
-  let momentFormat;
-  const dfault='YYYY/MM/DD';
-
-
-  if(FORMAT==='DMY'){
-    momentFormat='DD/MM/YYYY';
-  }else if(FORMAT==='MDY'){
-    momentFormat='MM/DD/YYYY';
-  }else if(FORMAT==='YMD'){
-    momentFormat='YYYY/MM/DD';
-  }else{
-    momentFormat=dfault;
-  }
-
-  let currentDate;
+  let currentDate = moment();
+  let momentFormat = 'YYYY/MM/DD';
   if (args && args.length >= 1) {
-    if (!moment.tz.zone(args[TIMEZONE_INDEX])) {
-      channel.send(`Invalid timezone ${args[TIMEZONE_INDEX]}\nPlease provide the appropriate \`TZ\` found here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones`);
-      return;
+    for (let arg of args) {
+      if (arg.startsWith(TIMEZONE_PREFIX)) {
+        let timezone = arg.substring(TIMEZONE_PREFIX.length)
+        if (!moment.tz.zone(timezone)) {
+          channel.send(`Invalid timezone ${timezone}\nPlease provide the appropriate \`TZ\` found here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones`);
+          return;
+        }
+        currentDate = moment().tz(timezone);
+      } else if (arg.startsWith(FORMAT_PREFIX)) {
+        let formatString = arg.substring(FORMAT_PREFIX.length).toUpperCase();
+        switch (formatString) {
+          case 'DMY':
+            momentFormat = 'DD/MM/YYYY';
+            break;
+          case 'MDY':
+            momentFormat = 'MM/DD/YYYY';
+            break;
+          case 'YMD': // Fallthrough
+          default:
+            momentFormat = 'YYYY/MM/DD';
+            break;
+        }
+      }
     }
-    currentDate = moment().tz(args[TIMEZONE_INDEX]);
-  } else {
-    currentDate = moment();
   }
 
   // zero -> one based indexing
