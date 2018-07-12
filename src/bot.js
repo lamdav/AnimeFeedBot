@@ -271,16 +271,16 @@ const help = (channel) => {
       description: 'Here are a list of commands available',
       fields: [
         {
-          name: '`-> anime-today [TZ]`',
-          value: `You may specify a timezone to adjust all showtimes. The timezones can be found here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones. If none is provided, the default is America/Los_Angeles. Example: \`-> anime-today America/Los_Angeles\`.`
+          name: '`-> anime-today [TZ=timezone]`',
+          value: `You may specify a timezone to adjust all showtimes. The timezones can be found here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones. If none is provided, the default is America/Los_Angeles. Example: \`-> anime-today TZ=America/Los_Angeles\`.`
         },
         {
           name: '`-> praise-the-sun`',
           value: 'Responds with the praise the sun emoji.'
         },
         {
-          name: '`-> update <interval> [TZ]`',
-          value: `Sets the current channel to receive daily updates. Interval is a required field in milliseconds (ms) used to specify the frequency of the updates. Timezone is the same optional parameter used in \`-> anime-today [TZ]\`.`,
+          name: '`-> update <interval> [TZ=timezone] [FMT=format]`',
+          value: `Sets the current channel to receive daily updates. Interval is a required field in milliseconds (ms) used to specify the frequency of the updates. Timezone is the same optional parameter used in \`-> anime-today\`. Formats are of the forms DMY, MDY, or YMD where D is for day, M is for month, and Y is for year. The default format is YMD.`,
         }
       ]
     }
